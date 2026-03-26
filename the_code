@@ -1,12 +1,7 @@
-/*
- * Smart Irrigation + Plant Talking System
- */
-
 #include <DHT.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-// Pin definitions
 #define DHTPIN 4
 #define DHTTYPE DHT11
 #define SOIL_MOISTURE A0
@@ -17,12 +12,10 @@ bool RELAY_ACTIVE_HIGH = false;
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// Thresholds
 int wetThreshold = 600;
 int dryThreshold = 800;
 int pumpDuration = 15000;
 
-// State variables
 bool pumpRunning = false;
 unsigned long pumpStartTime = 0;
 unsigned long lastSensorRead = 0;
@@ -66,7 +59,6 @@ void setup() {
 void loop() {
   unsigned long currentTime = millis();
   
-  // Read sensors
   if (currentTime - lastSensorRead >= sensorInterval) {
     lastSensorRead = currentTime;
     readSensors();
@@ -74,13 +66,11 @@ void loop() {
     plantBuzzerAlert();
   }
   
-  // Update LCD
   if (currentTime - lastLCDUpdate >= lcdInterval) {
     lastLCDUpdate = currentTime;
     updateLCD();
   }
   
-  // Force relay OFF periodically
   if (currentTime - lastForceOff >= forceOffInterval) {
     lastForceOff = currentTime;
     if (!pumpRunning) {
@@ -88,7 +78,6 @@ void loop() {
     }
   }
   
-  // Safety timeout
   if (pumpRunning && (currentTime - pumpStartTime >= pumpDuration)) {
     forcePumpOff();
     showMessage("SAFETY STOP!", "Pump OFF");
@@ -156,8 +145,6 @@ void forceRelayOff() {
   }
 }
 
-// ---------------- PLANT TALKING SYSTEM ----------------
-
 String getPlantMessage() {
   if (soilMoisture > dryThreshold + 50) {
     return "I AM DYING!";
@@ -182,7 +169,6 @@ String getPlantMessage() {
   }
 }
 
-// Buzzer alert when very dry
 void plantBuzzerAlert() {
   if (soilMoisture > dryThreshold + 50) {
     digitalWrite(BUZZER, HIGH);
@@ -191,7 +177,6 @@ void plantBuzzerAlert() {
   }
 }
 
-// LCD Update
 void updateLCD() {
   lcd.clear();
   
@@ -205,7 +190,6 @@ void updateLCD() {
   lcd.print(getPlantMessage());
 }
 
-// Display message temporarily
 void showMessage(String line1, String line2) {
   lcd.clear();
   lcd.setCursor(0, 0);
